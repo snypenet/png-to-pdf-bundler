@@ -13,7 +13,9 @@ if (!fs.existsSync(folder)) {
     return;
 }
 
-createPdf(folder);
+createPdf(folder).then(() => {
+    console.log('Done!');
+});
 
 async function createPdf(folder) {
     const folderName = path.basename(folder);
@@ -50,9 +52,5 @@ async function createPdf(folder) {
         console.log('Processed', file);
     }
 
-    fs.writeFileSync(path.join(folder, `${folderName}.pdf`), await pdfDoc.save(), {
-
-    });
-
-    console.log('Done!');
+    fs.writeFileSync(path.join(folder, `${folderName}.pdf`), await pdfDoc.save());
 }
