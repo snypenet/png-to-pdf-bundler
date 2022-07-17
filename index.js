@@ -1,4 +1,4 @@
-const { PDFDocument, rgb } = require('pdf-lib');
+const { PDFDocument, rgb, degrees } = require('pdf-lib');
 const fs = require('fs');
 const path = require('path');
 
@@ -25,6 +25,7 @@ async function createPdf(folder) {
         const parsedB = Number(b.replace('.png', ''));
         return parsedA < parsedB ? -1 : parsedA > parsedB ? 1 : 0;
     });
+
     for (const file of files) {
         if (file.indexOf('.png') === -1) {
             console.log('Skipping non-PNG', file);
@@ -33,20 +34,24 @@ async function createPdf(folder) {
         const imageData = fs.readFileSync(path.join(folder, file));
         const embeddedImage = await pdfDoc.embedPng(imageData);
         const page = pdfDoc.addPage();
+        page.setRotation(degrees(90));
+        const pageHeight = page.getHeight();
+        const pageWidth = page.getWidth();
+        //make black background
         page.drawRectangle({
             x:0,
             y:0,
-            width: page.getWidth(),
-            height: page.getHeight(),
+            width: pageWidth,
+            height: pageHeight,
             color: rgb(0,0,0)
         });
-        const scaledDimensions = embeddedImage.scaleToFit(page.getWidth(), page.getHeight());
+        const scaledDimensions = embeddedImage.scaleToFit(pageHeight, pageWidth);
         page.drawImage(embeddedImage, {
-            x: (page.getWidth() / 2) - (scaledDimensions.width / 2),
-            y: (page.getHeight() / 2) - (scaledDimensions.height / 2),
+            x: pageWidth / 2 + scaledDimensions.height / 2,
+            y: pageHeight / 2 - scaledDimensions.width / 2,
             width: scaledDimensions.width,
             height: scaledDimensions.height,
-
+            rotate: degrees(90)
         });
 
         console.log('Processed', file);
